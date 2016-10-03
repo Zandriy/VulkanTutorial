@@ -3,6 +3,6 @@ x64/
 VulkanTutorial_*/.git
 VulkanTutorial_*/.gitignore
 build/
+Debug/
 *.vcxproj.user
-*.v12.suo
 CMakeLists.txt
