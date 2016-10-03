@@ -5,4 +5,4 @@ VulkanTutorial_*/.gitignore
 build/
 Debug/
 *.vcxproj.user
-CMakeLists.txt
+*.sdf
