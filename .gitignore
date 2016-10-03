@@ -1,0 +1,8 @@
+VulkanWork/
+x64/
+VulkanTutorial_*/.git
+VulkanTutorial_*/.gitignore
+build/
+*.vcxproj.user
+*.v12.suo
+CMakeLists.txt
