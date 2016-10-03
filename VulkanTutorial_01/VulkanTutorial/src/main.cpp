@@ -40,9 +40,15 @@ try
 
 	return 0;
 }
-catch (...)
+catch (std::bad_alloc&)
 {
-	std::cout << "Problem with Vulkan Application creation\n";
+	std::cerr << "Problem with Vulkan Application creation\n";
 
 	return 1;
+}
+catch (...)
+{
+	std::cerr << "Uncaught exception discovered\n";
+
+	return 2;
 }

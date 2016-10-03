@@ -29,6 +29,7 @@
  
 #include "ZVK_Application.h"
 #include <vector>
+#include <exception>
 
 ZVK_Application::ZVK_Application()
 {
@@ -54,6 +55,11 @@ ZVK_Application::ZVK_Application()
 		.setPpEnabledLayerNames(layers.data());
 	
 	instance = vk::createInstance(inst_info);
+
+	if (!instance)
+	{
+		throw std::bad_alloc{};
+	}
 }
 
 
