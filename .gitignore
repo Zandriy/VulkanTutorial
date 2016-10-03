@@ -5,4 +5,5 @@ VulkanTutorial_*/.gitignore
 build/
 Debug/
 *.vcxproj.user
+*.opensdf
 *.sdf

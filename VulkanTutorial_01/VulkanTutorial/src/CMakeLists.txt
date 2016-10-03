@@ -27,7 +27,7 @@
  # OF THIS SOFTWARE.
  ##
 
-# Use the "Visual Studio 12 2013 Win64" generator, for example:
+# Use the Win64 generator, for example:
 # cmake -G "Visual Studio 12 2013 Win64" ../src
 
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
