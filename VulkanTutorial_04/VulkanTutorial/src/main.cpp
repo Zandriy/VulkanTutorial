@@ -65,6 +65,10 @@ try
 	std::cout << "Logical Device is "
 		<< (app.create_LogicalDevice() ? "" : "NOT ") << "created.\n";
 
+	////// Start VulkanTutorial_04. //////
+	std::cout << "Command Buffers are "
+		<< (app.allocate_CommandBuffers() ? "" : "NOT ") << "created.\n";
+
 	return 0;
 }
 catch (std::bad_alloc&)

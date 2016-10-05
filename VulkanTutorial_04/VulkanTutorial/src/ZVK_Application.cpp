@@ -77,6 +77,14 @@ ZVK_Application::ZVK_Application()
 
 ZVK_Application::~ZVK_Application()
 {
+	if (command_buffers.size())
+	{
+		logical_device.freeCommandBuffers(cmd_pool, command_buffers);
+	}
+	if (cmd_pool)
+	{
+		logical_device.destroyCommandPool(cmd_pool);
+	}
 	if (logical_device)
 	{
 		logical_device.destroy();
@@ -212,8 +220,6 @@ bool ZVK_Application::create_LogicalDevice()
 	{
 		throw std::domain_error{ "GPU has no Queue Family" };
 	}
-	
-	vk::DeviceQueueCreateInfo device_queue_info{};
 
 	bool found = false;
 	for (unsigned int i = 0; i < family_properties.size(); ++i) {
@@ -246,4 +252,32 @@ bool ZVK_Application::create_LogicalDevice()
 	logical_device = gpus[0].createDevice(device_info);
 
 	return (logical_device ? true : false);
+}
+
+bool ZVK_Application::allocate_CommandBuffers()
+{
+	vk::CommandPoolCreateInfo cmd_pool_info{};
+	cmd_pool_info.pNext = nullptr;
+	cmd_pool_info.queueFamilyIndex = device_info.pQueueCreateInfos->queueFamilyIndex;
+
+	cmd_pool = logical_device.createCommandPool(cmd_pool_info);
+
+	if (!cmd_pool)
+	{
+		throw std::domain_error{ "CommandPool was not created" };
+	}
+
+	vk::CommandBufferAllocateInfo cmd{};
+	cmd.pNext = nullptr;
+	cmd.commandPool = cmd_pool;
+	cmd.level = vk::CommandBufferLevel::ePrimary;
+	cmd.commandBufferCount = 1;
+
+	command_buffers = logical_device.allocateCommandBuffers(cmd);
+	if (!command_buffers.size())
+	{
+		throw std::domain_error{ "Command Buffers were not created" };
+	}
+
+	return true;
 }

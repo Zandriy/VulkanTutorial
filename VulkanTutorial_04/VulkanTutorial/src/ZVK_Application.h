@@ -45,6 +45,7 @@ public:
 	size_t get_PhysicalDevicesQty();
 
 	bool create_LogicalDevice();
+	bool allocate_CommandBuffers();
 private:
 	vk::ApplicationInfo app_info{};
 	vk::InstanceCreateInfo inst_info{};
@@ -58,10 +59,13 @@ private:
 	vk::Result get_LayerProperties();
 	vk::Result get_ExtensionProperties();
 	vk::Result get_PhysicalDevices();
-
+	
 	vk::DeviceQueueCreateInfo device_queue_info{};
 	vk::DeviceCreateInfo device_info{};
 	vk::Device logical_device{};
+	
+	vk::CommandPool cmd_pool{};
+	std::vector<vk::CommandBuffer> command_buffers;
 };
 
 #endif // !ZVK_Application_h
