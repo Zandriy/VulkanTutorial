@@ -2,7 +2,7 @@
  * VulkanTutorial project
  *
  * Created by Andriy Zhabura on 02-Oct-2016.
- * Last modified on 05-Oct-2016.
+ * Last modified on 08-Oct-2016.
  */
 
 /*

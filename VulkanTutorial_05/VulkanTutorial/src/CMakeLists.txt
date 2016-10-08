@@ -35,6 +35,10 @@ set(Vulkan_project VulkanTutorial)
 set(Vulkan_prg Vulkan_project)
 project(${Vulkan_project} CXX)
 
+#use UNICODE for sources
+add_definitions(-DUNICODE)
+add_definitions(-D_UNICODE)
+
 #find Vulkan library
 include_directories("$ENV{VULKAN_SDK}/Include")
 link_directories("$ENV{VULKAN_SDK}/Bin")
