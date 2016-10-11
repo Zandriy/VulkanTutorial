@@ -2,7 +2,7 @@
 ## VulkanTutorial project
 ##
 ## Created by Andriy Zhabura on 02-Oct-2016.
-## Last modified on  08-Oct-2016.
+## Last modified on  11-Oct-2016.
 ##
 
 ##
@@ -40,8 +40,8 @@ add_definitions(-DUNICODE)
 add_definitions(-D_UNICODE)
 
 #find Vulkan library
-include_directories("$ENV{VULKAN_SDK}/Include")
-link_directories("$ENV{VULKAN_SDK}/Bin")
+include_directories(${PROJECT_SOURCE_DIR}/../ThirdParty/include)
+link_directories(${PROJECT_SOURCE_DIR}/../ThirdParty/bin)
 
 #OS spesific adjustments
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
