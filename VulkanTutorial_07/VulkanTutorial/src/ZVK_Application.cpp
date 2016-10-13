@@ -83,6 +83,14 @@ ZVK_Application::ZVK_Application()
 
 ZVK_Application::~ZVK_Application()
 {
+    if (uniform_buffer_memory)
+    {
+        logical_device.freeMemory(uniform_buffer_memory);
+    }
+    if (uniform_buffer)
+    {
+        logical_device.destroyBuffer(uniform_buffer);
+    }
     if (depth_image_view)
     {
         logical_device.destroyImageView(depth_image_view);
@@ -619,4 +627,74 @@ void ZVK_Application::create_DepthImageView()
     {
         throw std::domain_error{ "Depth Image cannot be created" };
     }
+}
+
+bool ZVK_Application::create_UniformBuffer()
+{
+    set_view();
+    allocate_UniformMemory();
+    fill_UniformMemory();
+
+    return true;
+}
+
+void ZVK_Application::set_view()
+{
+    auto projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+
+    auto view = glm::lookAt(
+        glm::vec3(0, 3, 10), // Camera is at (0,3,10), in World Space
+        glm::vec3(0, 0, 0),  // and looks at the origin
+        glm::vec3(0, -1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+        );
+    auto model = glm::mat4(1.0f);
+    // Vulkan clip space has inverted Y and half Z.
+    auto clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, -1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.5f, 0.0f,
+        0.0f, 0.0f, 0.5f, 1.0f);
+
+    MVP = clip * projection * view * model;
+}
+
+void ZVK_Application::allocate_UniformMemory()
+{
+    vk::BufferCreateInfo buf_info{};
+    buf_info.pNext = nullptr;
+    buf_info.usage = vk::BufferUsageFlagBits::eUniformBuffer;
+    buf_info.size = sizeof(MVP);
+    buf_info.queueFamilyIndexCount = 0;
+    buf_info.pQueueFamilyIndices = nullptr;
+    buf_info.sharingMode = vk::SharingMode::eExclusive;
+
+    uniform_buffer = logical_device.createBuffer(buf_info);
+    if (!uniform_buffer)
+    {
+        throw std::domain_error{ "Uniform Buffer cannot be created" };
+    }
+
+    vk::MemoryRequirements mem_reqs = logical_device.getBufferMemoryRequirements(uniform_buffer);
+    uniform_buffer_memory_size = mem_reqs.size;
+
+    vk::MemoryPropertyFlags requirements_mask;
+    uniform_buffer_memory = logical_device.allocateMemory(get_AllocateInfo(mem_reqs, requirements_mask | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent));
+    if (!depth_memory)
+    {
+        throw std::domain_error{ "Uniform Buffer Memory cannot be allocated" };
+    }
+}
+
+void ZVK_Application::fill_UniformMemory()
+{
+    uint8_t *pData = (uint8_t*)(logical_device.mapMemory(uniform_buffer_memory, 0, uniform_buffer_memory_size));
+    if (!pData)
+    {
+        throw std::domain_error{ "Uniform Buffer Memory cannot be mapped" };
+    }
+
+    memcpy(pData, &MVP, sizeof(MVP));
+
+    logical_device.unmapMemory(uniform_buffer_memory);
+
+    logical_device.bindBufferMemory(uniform_buffer, uniform_buffer_memory, 0);
 }

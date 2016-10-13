@@ -38,6 +38,10 @@
 #include <vector>
 #include <string>
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "Z_Window.h"
 
 class ZVK_Application
@@ -55,6 +59,7 @@ public:
     bool create_Swapchain();
     bool create_ImageViews();
     bool create_DepthBuffer();
+    bool create_UniformBuffer();
 private:
 	vk::ApplicationInfo app_info{};
 	vk::InstanceCreateInfo inst_info{};
@@ -95,8 +100,16 @@ private:
     void create_DepthImage();
     void allocate_DepthMemory();
     void create_DepthImageView();
-    vk::MemoryAllocateInfo get_AllocateInfo(vk::MemoryRequirements& mem_reqs,
-        vk::MemoryPropertyFlags requirements_mask = vk::MemoryPropertyFlags{});
+    vk::MemoryAllocateInfo get_AllocateInfo(vk::MemoryRequirements& mem_reqs, vk::MemoryPropertyFlags requirements_mask = vk::MemoryPropertyFlags{});
+
+    glm::mat4 MVP{};
+    vk::Buffer uniform_buffer{};
+    vk::DeviceSize uniform_buffer_memory_size{};
+    vk::DeviceMemory uniform_buffer_memory{};
+
+    void set_view();
+    void allocate_UniformMemory();
+    void fill_UniformMemory();
 };
 
 #endif // !ZVK_Application_h
