@@ -85,6 +85,16 @@ ZVK_Application::ZVK_Application()
 
 ZVK_Application::~ZVK_Application()
 {
+	if (shaders.size())
+	{
+		for (auto s : shaders)
+		{
+			if (s)
+			{
+				logical_device.destroyShaderModule(s);
+			}
+		}
+	}
     if (render_pass)
     {
         logical_device.destroyRenderPass(render_pass);
@@ -976,11 +986,11 @@ void ZVK_Application::set_image_layout(vk::Image& image, vk::ImageAspectFlags as
 bool ZVK_Application::create_Shaders()
 {
 	return
-		compile_shader(vert_stage, vert_spir_v, sizeof(vert_spir_v))
-		&& compile_shader(frag_stage, frag_spir_v, sizeof(frag_spir_v));
+		compile_shader_module(vert_stage, vert_spir_v, sizeof(vert_spir_v))
+		&& compile_shader_module(frag_stage, frag_spir_v, sizeof(frag_spir_v));
 }
 
-bool ZVK_Application::compile_shader(shader_stage stage, const uint32_t* code, size_t sz)
+bool ZVK_Application::compile_shader_module(shader_stage stage, const uint32_t* code, size_t sz)
 {
 	vk::ShaderModuleCreateInfo moduleCreateInfo;
 	moduleCreateInfo.pCode = code;

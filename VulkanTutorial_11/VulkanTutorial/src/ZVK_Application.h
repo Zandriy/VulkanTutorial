@@ -144,7 +144,7 @@ private:
 		shaders_qty
 	};
 	std::array <vk::ShaderModule, shaders_qty> shaders;
-	bool compile_shader(shader_stage stage, const uint32_t* code, size_t sz);
+	bool compile_shader_module(shader_stage stage, const uint32_t* code, size_t sz);
 };
 
 #endif // !ZVK_Application_h
