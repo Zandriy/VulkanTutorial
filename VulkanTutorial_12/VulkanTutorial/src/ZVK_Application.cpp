@@ -1006,7 +1006,8 @@ bool ZVK_Application::create_FrameBuffers()
 {
 	clear_framebuffers();
 
-	std::vector<vk::ImageView> attachments(image_views.size());
+	/* Need attachments for render target and depth buffer */
+	std::vector<vk::ImageView> attachments(2);
 	attachments[1] = depth_image_view;
 
 	vk::FramebufferCreateInfo fb_info{};
@@ -1017,9 +1018,9 @@ bool ZVK_Application::create_FrameBuffers()
 	fb_info.height = window.height();
 	fb_info.layers = 1;
 
-	for (int i = 0; i < attachments.size(); ++i)
+	for (auto iv : image_views)
 	{
-		attachments[0] = image_views[i];
+		attachments[0] = iv;
 		framebuffers.push_back(logical_device.createFramebuffer(fb_info));
 	}
 
