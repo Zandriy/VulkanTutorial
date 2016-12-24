@@ -716,7 +716,7 @@ void ZVK_Application::allocate_UniformMemory()
 
     vk::MemoryPropertyFlags requirements_mask;
     uniform_buffer_memory = logical_device.allocateMemory(get_AllocateInfo(mem_reqs, requirements_mask | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent));
-    if (!depth_memory)
+	if (!uniform_buffer_memory)
     {
         throw std::domain_error{ "Uniform Buffer Memory cannot be allocated" };
     }
