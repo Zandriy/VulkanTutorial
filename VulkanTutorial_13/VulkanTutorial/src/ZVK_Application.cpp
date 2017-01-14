@@ -109,10 +109,6 @@ ZVK_Application::~ZVK_Application()
     {
         logical_device.destroyRenderPass(render_pass);
     }
-    if (image_acquired_semaphore)
-    {
-        logical_device.destroySemaphore(image_acquired_semaphore);
-    }
     if (desc_pool)
     {
         logical_device.destroyDescriptorPool(desc_pool);
@@ -838,52 +834,8 @@ void ZVK_Application::update_DescriptorSets()
     logical_device.updateDescriptorSets(1, writes, 0, nullptr);
 }
 
-bool ZVK_Application::create_Semaphore()
-{
-    vk::SemaphoreCreateInfo imageAcquiredSemaphoreCreateInfo;
-    imageAcquiredSemaphoreCreateInfo.pNext = nullptr;
-
-    image_acquired_semaphore = logical_device.createSemaphore(imageAcquiredSemaphoreCreateInfo);
-
-    return image_acquired_semaphore ? true : false;
-}
-
 bool ZVK_Application::create_RenderPass()
 {
-	// Start recording command buffer.
-    vk::CommandBufferBeginInfo cmd_buf_info{};
-    command_buffers[currect_command_buffer].begin(cmd_buf_info);
-
-    if (!create_Semaphore())
-    {
-        return false;
-    }
-
-	// Set the depth buffer layout.
-	set_image_layout(depth_image, vk::ImageAspectFlagBits::eDepth, vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal);
-
-    // Acquire the swapchain image in order to set its layout.
-    vk::Fence fence{};
-    uint32_t current_buffer;
-    if (vk::Result::eSuccess != logical_device.acquireNextImageKHR(swap_chain, UINT64_MAX, image_acquired_semaphore, fence, &current_buffer))
-    {
-        return false;
-    }
-    std::vector<vk::Image> swap_images = logical_device.getSwapchainImagesKHR(swap_chain);
-
-    // Set the layout for the color buffer, transitioning it from
-    // undefined to an optimal color attachment to make it usable in
-    // a render pass.
-    set_image_layout(swap_images[current_buffer], vk::ImageAspectFlagBits::eColor, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal);
-
-    // Stop recording the command buffer here since this sample will not
-    // actually put the render pass in the command buffer (via vk::CommandBuffer::beginRenderPass).
-    // An actual application might leave the command buffer in recording mode
-    // and insert vk::CommandBuffer::beginRenderPass() after the image layout transition
-    // memory barrier commands.
-    // This sample simply creates and defines the render pass.
-    command_buffers[currect_command_buffer].end();
-
     /* Need attachments for render target and depth buffer */
     vk::AttachmentDescription attachments[2]{};
     attachments[0].format = surface_format.format;
@@ -926,71 +878,6 @@ bool ZVK_Application::create_RenderPass()
     render_pass = logical_device.createRenderPass(rp_info);
 
     return render_pass ? true : false;
-}
-
-void ZVK_Application::set_image_layout(vk::Image& image, vk::ImageAspectFlags aspectMask, vk::ImageLayout old_image_layout, vk::ImageLayout new_image_layout)
-{
-    /* DEPENDS on vk::CommandBuffer and vk::DeviceQueueCreateInfo are initialized */
-	if (!command_buffers.size() || UINT32_MAX == device_queue_info.queueFamilyIndex)
-    {
-        throw std::domain_error{ "Command Buffers were not created or Device Queue is not initialized" };
-    }
-
-    vk::Queue graphics_queue = logical_device.getQueue(device_info.pQueueCreateInfos->queueFamilyIndex, 0);
-    std::vector<vk::Image> swap_images = logical_device.getSwapchainImagesKHR(swap_chain);
-
-    vk::ImageMemoryBarrier image_memory_barrier {};
-    image_memory_barrier.oldLayout = old_image_layout;
-    image_memory_barrier.newLayout = new_image_layout;
-    image_memory_barrier.image = image;
-    image_memory_barrier.subresourceRange.aspectMask = aspectMask;
-    image_memory_barrier.subresourceRange.baseMipLevel = 0;
-    image_memory_barrier.subresourceRange.levelCount = 1;
-    image_memory_barrier.subresourceRange.baseArrayLayer = 0;
-    image_memory_barrier.subresourceRange.layerCount = 1;
-
-	switch (old_image_layout)
-	{
-	case vk::ImageLayout::eColorAttachmentOptimal:
-		image_memory_barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-		break;
-	case vk::ImageLayout::eTransferDstOptimal:
-		image_memory_barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-		break;
-	case vk::ImageLayout::ePreinitialized:
-		image_memory_barrier.srcAccessMask = vk::AccessFlagBits::eHostWrite;
-		break;
-	default:
-		// do not set srcAccessMask
-		break;
-	}
-
-	switch (new_image_layout)
-	{
-	case vk::ImageLayout::eTransferDstOptimal:
-		image_memory_barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-		break;
-	case vk::ImageLayout::eTransferSrcOptimal:
-		image_memory_barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
-		break;
-	case vk::ImageLayout::eShaderReadOnlyOptimal:
-		image_memory_barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-		break;
-	case vk::ImageLayout::eColorAttachmentOptimal:
-		image_memory_barrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-		break;
-	case vk::ImageLayout::eDepthStencilAttachmentOptimal:
-		image_memory_barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-		break;
-	default:
-		// do not set dstAccessMask
-		break;
-	}
-
-    vk::PipelineStageFlagBits src_stages = vk::PipelineStageFlagBits::eTopOfPipe;
-    vk::PipelineStageFlagBits dest_stages = vk::PipelineStageFlagBits::eTopOfPipe;
-    
-    command_buffers[currect_command_buffer].pipelineBarrier(src_stages, dest_stages, vk::DependencyFlags{}, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
 }
 
 bool ZVK_Application::create_Shaders()

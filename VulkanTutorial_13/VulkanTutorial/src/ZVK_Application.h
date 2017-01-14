@@ -127,17 +127,11 @@ private:
     vk::DescriptorPool desc_pool{};
     std::vector<vk::DescriptorSet> descriptor_sets;
 
-    vk::Semaphore image_acquired_semaphore{};
     vk::RenderPass render_pass{};
 
     /* Number of samples needs to be the same at image creation,      */
     /* renderpass creation and pipeline creation.                     */
     const vk::SampleCountFlagBits num_samples{ vk::SampleCountFlagBits::e1 };
-
-    const size_t currect_command_buffer{ 0 };
-    
-    bool create_Semaphore();
-    void set_image_layout(vk::Image& image, vk::ImageAspectFlags aspectMask, vk::ImageLayout old_image_layout, vk::ImageLayout new_image_layout);
 
 	enum shader_stage
 	{
