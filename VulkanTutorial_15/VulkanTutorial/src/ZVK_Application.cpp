@@ -863,7 +863,7 @@ bool ZVK_Application::create_RenderPass()
     attachments[0].storeOp = vk::AttachmentStoreOp::eStore;
     attachments[0].stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
     attachments[0].stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-    attachments[0].initialLayout = vk::ImageLayout::eColorAttachmentOptimal;
+	attachments[0].initialLayout = vk::ImageLayout::eUndefined;
     attachments[0].finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
     attachments[1].format = depth_format;
@@ -872,7 +872,7 @@ bool ZVK_Application::create_RenderPass()
     attachments[1].storeOp = vk::AttachmentStoreOp::eStore;
     attachments[1].stencilLoadOp = vk::AttachmentLoadOp::eLoad;
     attachments[1].stencilStoreOp = vk::AttachmentStoreOp::eStore;
-	attachments[1].initialLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+	attachments[1].initialLayout = vk::ImageLayout::eUndefined;
     attachments[1].finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
     vk::AttachmentReference color_reference{};
@@ -1187,12 +1187,12 @@ bool ZVK_Application::draw_GraphicsPipeline()
 	rp_begin.renderArea.extent.height = window.height();
 	rp_begin.clearValueCount = 2;
 	rp_begin.pClearValues = clear_values;
-	const vk::DeviceSize offsets[1]{0};
-	command_buffers[currect_command_buffer].bindVertexBuffers(0, 1, &vertex_buffer, offsets);
 
 	command_buffers[currect_command_buffer].beginRenderPass(rp_begin, vk::SubpassContents::eInline);
 	command_buffers[currect_command_buffer].bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 	command_buffers[currect_command_buffer].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline_layout, 0, (uint32_t)descriptor_sets.size(), descriptor_sets.data(), 0, nullptr);
+	const vk::DeviceSize offsets[1]{0};
+	command_buffers[currect_command_buffer].bindVertexBuffers(0, 1, &vertex_buffer, offsets);
 	
 	init_viewport();
 	init_scissor();
@@ -1200,12 +1200,7 @@ bool ZVK_Application::draw_GraphicsPipeline()
 	command_buffers[currect_command_buffer].draw(12 * 3, 1, 0, 0);
 	command_buffers[currect_command_buffer].endRenderPass();
 
-	// Stop recording the command buffer here since this sample will not
-	// actually put the render pass in the command buffer (via vk::CommandBuffer::beginRenderPass).
-	// An actual application might leave the command buffer in recording mode
-	// and insert vk::CommandBuffer::beginRenderPass() after the image layout transition
-	// memory barrier commands.
-	// This sample simply creates and defines the render pass.
+	// Stop recording the command.
 	command_buffers[currect_command_buffer].end();
 
 	const vk::CommandBuffer cmd_bufs[] = { command_buffers[currect_command_buffer] };
@@ -1229,14 +1224,6 @@ bool ZVK_Application::draw_GraphicsPipeline()
 		throw std::domain_error{ "Problem while submitting Graphics Queue" };
 	}
 
-	vk::PresentInfoKHR present{};
-	present.swapchainCount = 1;
-	present.pSwapchains = &swap_chain;
-	present.pImageIndices = &current_buffer;
-	present.pWaitSemaphores = nullptr;
-	present.waitSemaphoreCount = 0;
-	present.pResults = nullptr;
-
 	vk::Result res{};
 	/* Make sure command buffer is finished before presenting */
 	do {
@@ -1246,6 +1233,14 @@ bool ZVK_Application::draw_GraphicsPipeline()
 	{
 		throw std::domain_error{ "Problem while processing a Command Buffer" };
 	}
+
+	vk::PresentInfoKHR present{};
+	present.swapchainCount = 1;
+	present.pSwapchains = &swap_chain;
+	present.pImageIndices = &current_buffer;
+	present.pWaitSemaphores = nullptr;
+	present.waitSemaphoreCount = 0;
+	present.pResults = nullptr;
 
 	vk::Queue present_queue = logical_device.getQueue(present_family_index, 0);
 	if (vk::Result::eSuccess != present_queue.presentKHR(present))
